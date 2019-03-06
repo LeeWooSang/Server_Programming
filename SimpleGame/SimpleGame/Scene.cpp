@@ -55,6 +55,8 @@ bool Scene::Initialize()
 	if (!pPlayer->Initialize(m_pRenderer))
 		return false;
 	m_GameObjectMap.emplace("Player", pPlayer);
+
+	return true;
 }
 
 void Scene::Update(float elapsedTime)
