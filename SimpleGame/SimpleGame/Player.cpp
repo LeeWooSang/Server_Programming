@@ -51,7 +51,7 @@ bool Player::Initialize(Renderer* pRenderer)
 	m_HpBar_height = m_Size / 10.f;
 
 	m_Speed = 100.f;
-	m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/RedKingTower.png");
+	m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/Horse.png");
 
 	return true;
 }

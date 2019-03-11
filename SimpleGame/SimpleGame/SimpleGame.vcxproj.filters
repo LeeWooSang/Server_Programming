@@ -5,9 +5,6 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Code\Sound">
-      <UniqueIdentifier>{95cd1114-2989-4032-b7e3-29af7c27b545}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Code\Renderer">
       <UniqueIdentifier>{89267606-4707-45e5-b6a8-89989c7ee094}</UniqueIdentifier>
     </Filter>
@@ -34,9 +31,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sound.h">
-      <Filter>Code\Sound</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Code\Renderer</Filter>
     </ClInclude>
@@ -65,9 +59,6 @@
   <ItemGroup>
     <ClCompile Include="SimpleGame.cpp">
       <Filter>Code</Filter>
-    </ClCompile>
-    <ClCompile Include="Sound.cpp">
-      <Filter>Code\Sound</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Code\Renderer</Filter>
