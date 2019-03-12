@@ -9,7 +9,7 @@ public:
 	virtual ~ChessBoard();
 
 	virtual bool Initialize(Renderer*, int, float, float);
-	virtual void Update(float);
+	virtual void Update(float, float, float);
 	virtual void Render(Renderer*);
 
 private:

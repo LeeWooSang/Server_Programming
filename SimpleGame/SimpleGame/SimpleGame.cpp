@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "Dependencies\glew.h"
 #include "Dependencies\freeglut.h"
+#include "Network.h"
 #include "Scene.h"
 
-Scene* g_pScene{ nullptr };
-DWORD g_prevTime = 0;
+Network g_Network;
+Scene*		g_pScene{ nullptr };
+DWORD	g_prevTime = 0;
 
 void RenderScene(void)
 {
@@ -15,11 +17,13 @@ void RenderScene(void)
 	float elapsedTime = currTime - g_prevTime;
 	g_prevTime = currTime;
 
+	g_Network.RecvPacket();
 	if (g_pScene)
 	{
-		g_pScene->Update(elapsedTime);
+		g_pScene->Update(elapsedTime, g_Network);
 		g_pScene->Render();
 	}
+	g_Network.SendPacket();
 
 	glutSwapBuffers();
 }
@@ -69,6 +73,10 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(KeyInput);
 	glutMouseFunc(MouseInput);
 	glutSpecialFunc(SpecialKeyInput);
+
+	// 네트워크 초기화
+	if(!g_Network.Initialize())
+		glutLeaveMainLoop();
 
 	//Initialize Renderer
    g_pScene = new Scene(WIDTH, HEIGHT);

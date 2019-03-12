@@ -8,8 +8,14 @@ public:
 	virtual ~GameObject();
 
 	virtual bool Initialize(Renderer*);
-	virtual void Update(float);
+	virtual void Update(float, float, float);
 	virtual void Render(Renderer*);
+
+	float getX()	const { return m_X; }
+	void setX(float x) { m_X = x; }
+	
+	float getY()	const { return m_Y; }
+	void setY(float y) { m_Y = y; }
 
 protected:
 	float m_X;

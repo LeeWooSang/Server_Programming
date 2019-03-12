@@ -39,7 +39,7 @@ bool ChessBoard::Initialize(Renderer* pRenderer, int type, float x, float y)
 	return true;
 }
 
-void ChessBoard::Update(float elapsedTime)
+void ChessBoard::Update(float elapsedTime, float x, float y)
 {
 	float elapsedTimeInSecond = elapsedTime * 0.001f;
 	m_ElapsedTime = elapsedTimeInSecond;

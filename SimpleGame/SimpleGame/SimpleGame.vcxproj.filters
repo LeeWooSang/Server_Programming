@@ -29,6 +29,9 @@
     <Filter Include="Code\GameObject\ChessBoard">
       <UniqueIdentifier>{8165940f-e0c3-4264-8afb-9c88e9789fcf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Code\Network">
+      <UniqueIdentifier>{6fa7e679-0147-4e6b-9165-5a4d004cdcbb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -55,6 +58,9 @@
     <ClInclude Include="ChessBoard.h">
       <Filter>Code\GameObject\ChessBoard</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Code\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SimpleGame.cpp">
@@ -80,6 +86,9 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Code\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Code\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

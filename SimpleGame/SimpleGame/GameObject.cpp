@@ -15,7 +15,7 @@ bool GameObject::Initialize(Renderer* pRenderer)
 	return true;
 }
 
-void GameObject::Update(float elapsedTime)
+void GameObject::Update(float elapsedTime, float x, float y)
 {
 	float elapsedTimeInSecond = elapsedTime * 0.001f;
 }
