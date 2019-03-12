@@ -23,9 +23,9 @@ void RenderScene(void)
 
 		g_pScene->Update(elapsedTime, g_Network);
 		
-		g_Network.SendPacket();
-
 		g_pScene->Render();
+
+		g_Network.SendPacket();
 	}
 
 	glutSwapBuffers();
