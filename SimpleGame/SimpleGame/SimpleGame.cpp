@@ -17,13 +17,16 @@ void RenderScene(void)
 	float elapsedTime = currTime - g_prevTime;
 	g_prevTime = currTime;
 
-	g_Network.RecvPacket();
 	if (g_pScene)
 	{
+		g_Network.RecvPacket();
+
 		g_pScene->Update(elapsedTime, g_Network);
+		
+		g_Network.SendPacket();
+
 		g_pScene->Render();
 	}
-	g_Network.SendPacket();
 
 	glutSwapBuffers();
 }

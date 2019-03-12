@@ -64,14 +64,14 @@ bool Scene::Initialize()
 
 void Scene::Update(float elapsedTime, Network& network)
 {
+	CS_MovePacket cs_packet;
+	cs_packet.m_Key = Scene::ProcessInput();
+	network.setCSPacket(cs_packet);
+
 	for (auto iter = m_GameObjectMap.begin(); iter != m_GameObjectMap.end(); ++iter)
 	{
 		(*iter).second->Update(elapsedTime, network.getSCPacket().m_X, network.getSCPacket().m_Y);
 	}
-
-	CS_MovePacket cs_packet;
-	cs_packet.m_Key = Scene::ProcessInput();
-	network.setCSPacket(cs_packet);
 }
 
 void Scene::Render()
