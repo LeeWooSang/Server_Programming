@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "ChessBoard.h"
 #include "Player.h"
+#include "Network.h"
 
 Scene::Scene(int width , int height)
 {
@@ -20,11 +21,13 @@ Scene::~Scene()
 		delete  m_pRenderer;
 }
 
-void Scene::ProcessInput()
+int Scene::ProcessInput()
 {
 	auto iter = m_GameObjectMap.find("Player");
 	if (iter != m_GameObjectMap.end())
-		dynamic_cast<Player*>((*iter).second)->ProcessInput();
+		return dynamic_cast<Player*>((*iter).second)->ProcessInput();
+	else
+		return 0;
 }
 
 bool Scene::Initialize()
@@ -59,13 +62,15 @@ bool Scene::Initialize()
 	return true;
 }
 
-void Scene::Update(float elapsedTime)
+void Scene::Update(float elapsedTime, Network& network)
 {
-	Scene::ProcessInput();
+	CS_MovePacket cs_packet;
+	cs_packet.m_Key = Scene::ProcessInput();
+	network.setCSPacket(cs_packet);
 
 	for (auto iter = m_GameObjectMap.begin(); iter != m_GameObjectMap.end(); ++iter)
 	{
-		(*iter).second->Update(elapsedTime);
+		(*iter).second->Update(elapsedTime, network.getSCPacket().m_X, network.getSCPacket().m_Y);
 	}
 }
 

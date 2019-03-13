@@ -8,10 +8,10 @@ public:
 	Player();
 	virtual ~Player();
 
-	void ProcessInput();
+	int ProcessInput();
 
 	virtual bool Initialize(Renderer*);
-	virtual void Update(float);
+	virtual void Update(float, float, float);
 	virtual void Render(Renderer*);
 
 private:

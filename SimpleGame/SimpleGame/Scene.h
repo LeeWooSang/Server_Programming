@@ -2,16 +2,17 @@
 
 class Renderer;
 class GameObject;
+class Network;
 class Scene
 {
 public:
 	Scene(int, int);
 	~Scene();
 
-	void ProcessInput();
+	int ProcessInput();
 
 	bool Initialize();
-	void Update(float);
+	void Update(float, Network&);
 	void Render();
 	void Release();
 
