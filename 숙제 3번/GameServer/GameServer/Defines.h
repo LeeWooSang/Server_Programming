@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <WinSock2.h>
+#include <map>
 using namespace std;
 
-enum SERVER_INFO { PORT = 9000 };
+enum SERVER_INFO { SERVER_PORT = 9000, BUFSIZE = 1024 };
 
 enum KEY 
 {
@@ -15,16 +16,24 @@ enum KEY
 	KEY_DOWN	= 0x08
 };
 
+struct Position
+{
+	float m_X = 0.f;
+	float m_Y = 0.f;
+};
+
 #pragma pack(1)
 // 서버에서 클라에게 좌표 값만 보냄
 struct SC_MovePacket
 {
-	float	m_X = 0.f;
-	float m_Y = 0.f;
+	byte m_PlayerID = 0;
+	byte m_ClientSize = 0;
+	Position m_Position[2] = { 0 };
 };
 // 클라에서 서버에게 어떤 키인지만 보냄
 struct CS_MovePacket
 {
+	byte m_PlayerID = 0;
 	byte m_Key = KEY_IDLE;
 };
 #pragma pack()

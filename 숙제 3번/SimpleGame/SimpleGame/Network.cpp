@@ -1,12 +1,15 @@
 #include "stdafx.h"
 #include "Network.h"
 
-Network::Network() : m_cs_packet{ 0 }, m_sc_packet{ 0 }
+Network::Network() : m_cs_packet{ 0 }, m_sc_packet{ 0 }, m_socketInfo{nullptr}
 {
 }
 
 Network::~Network()
 {
+	if (m_socketInfo)
+		delete m_socketInfo;
+
 	closesocket(m_Server_socket);
 	WSACleanup();
 }
@@ -77,7 +80,8 @@ bool Network::Initialize()
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return false;
 
-	m_Server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	//m_Server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	m_Server_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (m_Server_socket == INVALID_SOCKET)
 	{
 		err_quit("socket( )");
@@ -90,13 +94,15 @@ bool Network::Initialize()
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
-	server_addr.sin_port = htons(PORT);
+	server_addr.sin_port = htons(SERVER_PORT);
 	int retval = connect(m_Server_socket, (SOCKADDR*)&server_addr, sizeof(server_addr));
 	if (retval == SOCKET_ERROR)
 	{
 		err_quit("connect( )");
 		return false;
 	}
+
+	m_socketInfo = new SOCKETINFO;
 
 	return true;
 }

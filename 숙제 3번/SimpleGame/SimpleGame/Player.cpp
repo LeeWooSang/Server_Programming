@@ -33,7 +33,8 @@ Player::~Player()
 	////if (GetAsyncKeyState(VK_DOWN) & 0x8000)
 	////	m_Y -= m_Speed * m_ElapsedTime;
 
-	 if (GetAsyncKeyState(VK_RIGHT) & 0x0001)			return KEY_RIGHT;
+	 if (GetAsyncKeyState(VK_RIGHT) & 0x0001)			
+		 return KEY_RIGHT;
 	 else if (GetAsyncKeyState(VK_LEFT) & 0x0001)		return KEY_LEFT;
 	 else if (GetAsyncKeyState(VK_UP) & 0x0001)		return KEY_UP;
 	 else if (GetAsyncKeyState(VK_DOWN) & 0x0001)	return KEY_DOWN;
@@ -42,8 +43,8 @@ Player::~Player()
 
 bool Player::Initialize(Renderer* pRenderer)
 {
-	m_X = 0.f;
-	m_Y = 0.f;
+	m_Position.m_X = 0.f;
+	m_Position.m_Y = 0.f;
 	m_Size = 100.f;
 
 	m_Color[0] = 1.f;
@@ -64,26 +65,38 @@ bool Player::Initialize(Renderer* pRenderer)
 
 void Player::Update(float elapsedTime, float x, float y)
 {
-	m_X = x;
-	m_Y = y;
+	//m_X = x;
+	//m_Y = y;
 
 	float elapsedTimeInSecond = elapsedTime * 0.001f;
 	m_ElapsedTime = elapsedTimeInSecond;
 
 	int size = 350;
 
-	if (m_X >= size)
-		m_X = size;
-	else if (m_X <= -size)
-		m_X = -size;
-	if (m_Y >= size)
-		m_Y = size;
-	else if (m_Y <= -size)
-		m_Y = -size;
+	if (m_Position.m_X >= size)
+		m_Position.m_X = size;
+	else if (m_Position.m_X <= -size)
+		m_Position.m_X = -size;
+	if (m_Position.m_Y >= size)
+		m_Position.m_Y = size;
+	else if (m_Position.m_Y <= -size)
+		m_Position.m_Y = -size;
 }
 
 void Player::Render(Renderer* pRenderer)
 {
 	int i = 0;
-	pRenderer->DrawTexturedRect(m_X, m_Y, m_Z, m_Size, m_Color[i++], m_Color[i++], m_Color[i++], m_Color[i++], m_TextureID, m_BuildLevel);
+	pRenderer->DrawTexturedRect
+	(
+		m_Position.m_X,
+		m_Position.m_Y,
+		m_Z, 
+		m_Size, 
+		m_Color[i++], 
+		m_Color[i++], 
+		m_Color[i++], 
+		m_Color[i++], 
+		m_TextureID, 
+		m_BuildLevel
+	);
 }
