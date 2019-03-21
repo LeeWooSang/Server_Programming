@@ -8,6 +8,7 @@ struct SOCKETINFO
 	int								m_sendBytes;
 };
 
+class Player;
 class Network
 {
 public:
@@ -20,26 +21,18 @@ public:
 
 	bool Initialize();
 	void Update();
-
-	void RecvPacket();
+	
+	void InitRecvPacket();
+	void RecvPacket(const map<byte, Player*>&);
 	void SendPacket();
 
-	void setCSPacket(CS_MovePacket& cs_packet) 
-	{ 
-		m_cs_packet = cs_packet; 
-
-		if (m_socketInfo)
-		{
-			m_socketInfo->m_dataBuffer.len = sizeof(m_cs_packet);
-			m_socketInfo->m_dataBuffer.buf = reinterpret_cast<char*>(&m_cs_packet);
-
-			//if(reinterpret_cast<CS_MovePacket*>(m_socketInfo->m_dataBuffer.buf)->m_Key == KEY_DOWN)
-		}
-	}
+	void setCSPacket(CS_MovePacket& cs_packet)		{ m_cs_packet = cs_packet; }
 	const SC_MovePacket& getSCPacket()	const { return m_sc_packet; }
-
+	const SC_InitPacket& getSC_InitPacket()	const { return m_sc_InitPacket; }
 private:
 	SOCKET				m_Server_socket;
+
+	SC_InitPacket		m_sc_InitPacket;
 
 	SC_MovePacket	m_sc_packet;
 	CS_MovePacket	m_cs_packet;

@@ -23,14 +23,14 @@ Scene::~Scene()
 
 int Scene::ProcessInput()
 {
-	auto iter = m_PlayerList.find(0);
+	auto iter = m_PlayerList.find(m_id);
 	if (iter != m_PlayerList.end())
 		return ((*iter).second)->ProcessInput();
 	else
 		return 0;
 }
 
-bool Scene::Initialize()
+bool Scene::Initialize(const SC_MovePacket& sc_Packet)
 {
 	int size = 8;
 	float width = 0.f, height = 0.f;
@@ -54,42 +54,66 @@ bool Scene::Initialize()
 		++order;
 	}
 
-	//Player* pPlayer = new Player;
-	//if (!pPlayer->Initialize(m_pRenderer))
-	//	return false;
-	//m_PlayerList.emplace(0, pPlayer);
+	// 내 자신을 생성한다.
+	Player* pPlayer = new Player;
+	if (!pPlayer->Initialize(m_pRenderer))
+		return false;
+	pPlayer->setID(sc_Packet.m_PlayerID);
+	pPlayer->setPosition(sc_Packet.m_Position[pPlayer->getID()]);
+	m_PlayerList.emplace(pPlayer->getID(), pPlayer);
+	m_id = pPlayer->getID();
 
 	return true;
 }
 
-void Scene::PacketProcessing(Network& network)
+void Scene::PacketProcess(Network& network)
 {
 	CS_MovePacket cs_packet;
-	cs_packet.m_Key = Scene::ProcessInput();
-	network.setCSPacket(cs_packet);
+	byte key = Scene::ProcessInput();
+//	if (key != KEY_IDLE)
+//	{
+		cs_packet.m_Key = key;
+		network.setCSPacket(cs_packet);
+		network.SendPacket();
+	//}
 
-	// 플레이어 생성
-	for (int i = m_PlayerList.size(); i < network.getSCPacket().m_ClientSize; ++i)
+	network.RecvPacket(m_PlayerList);
+
+	if (m_PlayerList.size() < network.getSCPacket().m_ClientSize)
 	{
-		Player* pPlayer = new Player;
-		if (!pPlayer->Initialize(m_pRenderer))
-			return;
-		// 먼저 들어온 플레이어 정보를 어떻게 저장함?
-		m_PlayerList.emplace(i, pPlayer);
+		byte NewPlayerSize = network.getSCPacket().m_ClientSize - m_PlayerList.size();
+		for (int i = 0; i < NewPlayerSize; ++i)
+		{
+			Player* pPlayer = new Player;
+			if (!pPlayer->Initialize(m_pRenderer))
+				return;
+			// 먼저 들어온 플레이어 정보를 어떻게 저장함?
+			m_PlayerList.emplace(3, pPlayer);
+		}
 	}
+	//// 플레이어 생성
+	//for (int i = m_PlayerList.size(); i < network.getSCPacket().m_ClientSize; ++i)
+	//{
+	//	Player* pPlayer = new Player;
+	//	if (!pPlayer->Initialize(m_pRenderer))
+	//		return;
+	//	// 먼저 들어온 플레이어 정보를 어떻게 저장함?
+	//	m_PlayerList.emplace(0, pPlayer);
+	//}
 
-	cout << m_PlayerList.size() << endl;
 	int i = 0;
 	for (auto iter = m_PlayerList.begin(); iter != m_PlayerList.end(); ++iter)
 	{
+		(*iter).second->setID(network.getSCPacket().m_PlayerID);
 		(*iter).second->setPosition(network.getSCPacket().m_Position[i++]);
+		
 		//cout << (*iter).second->getPosition().m_X << ", " << (*iter).second->getPosition().m_Y << endl;
 	}
 }
 
 void Scene::Update(float elapsedTime, Network& network)
 {
-	PacketProcessing(network);
+	PacketProcess(network);
 
 	// ChessBoard Update;
 	for (auto iter = m_GameObjectList.begin(); iter != m_GameObjectList.end(); ++iter)

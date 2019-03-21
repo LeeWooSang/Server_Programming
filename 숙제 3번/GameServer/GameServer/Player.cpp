@@ -1,6 +1,6 @@
-#include "stdafx.h"
+#include "Defines.h"
 #include "Player.h"
-#include "Renderer.h"
+//#include "Renderer.h"
 
 Player::Player()
 	: GameObject(), m_HpBar_width(0), m_HpBar_height(0), m_Speed(0), m_TextureID(0)
@@ -58,7 +58,7 @@ bool Player::Initialize(Renderer* pRenderer)
 	m_HpBar_height = m_Size / 10.f;
 
 	m_Speed = 100.f;
-	m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/Horse.png");
+	//m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/Horse.png");
 
 	return true;
 }
@@ -85,19 +85,18 @@ void Player::Update(float elapsedTime, float x, float y)
 
 void Player::Render(Renderer* pRenderer)
 {
-	//cout << "플레이어 : " << m_Position.m_X << ", " << m_Position.m_Y << endl;
 	int i = 0;
-	pRenderer->DrawTexturedRect
-	(
-		m_Position.m_X,
-		m_Position.m_Y,
-		m_Z, 
-		m_Size, 
-		m_Color[i++], 
-		m_Color[i++], 
-		m_Color[i++], 
-		m_Color[i++], 
-		m_TextureID, 
-		m_BuildLevel
-	);
+	//pRenderer->DrawTexturedRect
+	//(
+	//	m_Position.m_X,
+	//	m_Position.m_Y,
+	//	m_Z, 
+	//	m_Size, 
+	//	m_Color[i++], 
+	//	m_Color[i++], 
+	//	m_Color[i++], 
+	//	m_Color[i++], 
+	//	m_TextureID, 
+	//	m_BuildLevel
+	//);
 }

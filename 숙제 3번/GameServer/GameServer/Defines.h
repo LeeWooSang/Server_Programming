@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <WinSock2.h>
+#include <Windows.h>
 #include <map>
 using namespace std;
 
@@ -23,13 +24,15 @@ struct Position
 };
 
 #pragma pack(1)
+
 // 서버에서 클라에게 좌표 값만 보냄
 struct SC_MovePacket
 {
 	byte m_PlayerID = 0;
 	byte m_ClientSize = 0;
-	Position m_Position[2] = { 0 };
+	Position m_Position[2] = { {-350, -350 }, {-250, -350} };
 };
+
 // 클라에서 서버에게 어떤 키인지만 보냄
 struct CS_MovePacket
 {

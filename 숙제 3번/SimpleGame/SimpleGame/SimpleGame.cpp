@@ -19,13 +19,13 @@ void RenderScene(void)
 
 	if (g_pScene)
 	{
-		g_Network.RecvPacket();
+		//g_Network.RecvPacket(g_pScene->getPlayerList());
 
 		g_pScene->Update(elapsedTime, g_Network);
 		
 		g_pScene->Render();
 
-		g_Network.SendPacket();
+		//g_Network.SendPacket();
 	}
 
 	glutSwapBuffers();
@@ -80,10 +80,11 @@ int main(int argc, char **argv)
 	// 네트워크 초기화
 	if(!g_Network.Initialize())
 		glutLeaveMainLoop();
+	g_Network.RecvPacket(g_pScene->getPlayerList());
 
 	//Initialize Renderer
    g_pScene = new Scene(WIDTH, HEIGHT);
-   if (!g_pScene->Initialize())
+   if (!g_pScene->Initialize(g_Network.getSCPacket() ) )
 	   glutLeaveMainLoop();
 
 	g_prevTime = timeGetTime();

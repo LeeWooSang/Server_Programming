@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Network.h"
+#include "Player.h"
 
 Network::Network() : m_cs_packet{ 0 }, m_sc_packet{ 0 }, m_socketInfo{nullptr}
 {
@@ -111,15 +112,42 @@ void Network::Update()
 {
 }
 
-void Network::RecvPacket()
+// 내 자신의 정보를 받아옴
+void Network::InitRecvPacket()
 {
-	//데이터 받기
 	int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
 	if (retval == SOCKET_ERROR)
 	{
 		err_display("recvn( )");
 		return;
 	}
+}
+
+void Network::RecvPacket(const map<byte, Player*>& PlayerList)
+{
+	////데이터 받기
+	//for (auto iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+	//{
+	//	int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
+	//	if (retval == SOCKET_ERROR)
+	//	{
+	//		err_display("recvn( )");
+	//		return;
+	//	}
+	//	cout << "받음" << endl;
+	//}
+
+	//for (int i = 0; i < 2; ++i)
+	//{
+		int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
+		if (retval == SOCKET_ERROR)
+		{
+			err_display("recvn( )");
+			return;
+		}
+
+		cout << m_sc_packet.m_Position[0].m_X << ", " << m_sc_packet.m_Position[0].m_Y << endl;
+//	}
 }
 
 void Network::SendPacket()

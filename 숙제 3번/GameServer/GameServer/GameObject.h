@@ -20,12 +20,7 @@ public:
 	Position getPosition()	const { return m_Position; }
 	void setPosition(Position position) { m_Position = position; }
 
-	byte getID()	const { return m_ID; }
-	void setID(byte id) { m_ID = id; }
-
 protected:
-	byte m_ID;
-
 	float m_X;
 	float m_Y;
 	float m_Z;
