@@ -126,28 +126,24 @@ void Network::InitRecvPacket()
 void Network::RecvPacket(const map<byte, Player*>& PlayerList)
 {
 	////데이터 받기
-	//for (auto iter = PlayerList.begin(); iter != PlayerList.end(); ++iter)
+	//int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
+	//if (retval == SOCKET_ERROR)
 	//{
-	//	int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
-	//	if (retval == SOCKET_ERROR)
-	//	{
-	//		err_display("recvn( )");
-	//		return;
-	//	}
-	//	cout << "받음" << endl;
+	//	err_display("recvn( )");
+	//	return;
 	//}
 
-	//for (int i = 0; i < 2; ++i)
-	//{
-		int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
+	for (int i = 0; i < 2; ++i)
+	{
+		int retval = recvn(m_Server_socket, (char*)&m_sc_packet2, sizeof(m_sc_packet2), 0);
 		if (retval == SOCKET_ERROR)
 		{
 			err_display("recvn( )");
 			return;
 		}
 
-		cout << m_sc_packet.m_Position[0].m_X << ", " << m_sc_packet.m_Position[0].m_Y << endl;
-//	}
+		cout << m_sc_packet2.m_Position.m_X << ", " << m_sc_packet2.m_Position.m_Y << endl;
+	}
 }
 
 void Network::SendPacket()

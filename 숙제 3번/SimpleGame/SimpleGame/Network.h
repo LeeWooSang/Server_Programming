@@ -35,6 +35,8 @@ private:
 	SC_InitPacket		m_sc_InitPacket;
 
 	SC_MovePacket	m_sc_packet;
+	SC_MovePacket2	m_sc_packet2;
+
 	CS_MovePacket	m_cs_packet;
 
 	SOCKETINFO* m_socketInfo;

@@ -26,6 +26,9 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>Code\GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="main2.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Defines.h">

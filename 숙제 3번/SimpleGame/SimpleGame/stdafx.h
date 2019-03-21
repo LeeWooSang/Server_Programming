@@ -53,12 +53,12 @@ struct SC_MovePacket
 	Position m_Position[2] = { 0 };
 };
 
-//struct SC_MovePacket
-//{
-//	byte m_PlayerID = 0;
-//	byte m_ClientSize = 0;
-//	Position m_Position = { 0 };
-//};
+struct SC_MovePacket2
+{
+	byte m_PlayerID = 0;
+	byte m_ClientSize = 0;
+	Position m_Position = { 0 };
+};
 
 // 클라에서 서버에게 어떤 키인지만 보냄
 struct CS_MovePacket

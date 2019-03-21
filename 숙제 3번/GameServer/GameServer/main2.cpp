@@ -1,13 +1,6 @@
 #include "Defines.h"
 #include "Player.h"
 
-struct SC_MovePacket
-{
-	byte m_PlayerID = 0;
-	byte m_ClientSize = 0;
-	Position m_Position = { 0 };
-};
-
 struct SOCKETINFO
 {
 	WSAOVERLAPPED	m_overlapped;
@@ -17,7 +10,7 @@ struct SOCKETINFO
 
 	char m_messageBuffer[BUFSIZE];
 
-	SC_MovePacket m_scPacket;
+	SC_MovePacket2 m_scPacket;
 	CS_MovePacket m_csPacket;
 
 	int								m_receiveBytes;
@@ -28,10 +21,6 @@ void err_quit(const char*);
 void err_display(const char*);
 int recvn(SOCKET, char*, int, int);
 bool Initialize();
-void Update(SOCKET&, DWORD&);
-
-//void PacketProcess(SOCKET&, CS_MovePacket&);
-
 void PacketProcess2(SOCKET& client_socket, CS_MovePacket& csPacket);
 
 // 콜백함수 정의
@@ -41,7 +30,8 @@ void CALLBACK send_callback(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
 // ★★★★★소켓으로 어떤 클라이언트에서 왔는지 알 수 있게 해야함
 map <SOCKET, SOCKETINFO> g_clientList;
 
-SC_MovePacket sc_packet;
+SC_MovePacket2 sc_packet;
+
 Position g_clientPosition[2] = { {-350, -350}, {-250, -350} };
 int index = 0;
 
@@ -187,64 +177,46 @@ bool Initialize()
 			byte playerID = g_clientList.size() - 1;
 			(*iter).second.m_scPacket.m_PlayerID = playerID;
 			(*iter).second.m_scPacket.m_ClientSize = g_clientList.size();
+			(*iter).second.m_dataBuffer.len = sizeof(SC_MovePacket2);
+			(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scPacket);
+			(*iter).second.m_overlapped.hEvent = (HANDLE)(*iter).second.m_socket;
 
 			//for (int i = 0; i < 2; ++i)
 			//{
-			//	(*iter).second.m_scPacket.m_Position[i].m_X = position[i].m_X;
-			//	(*iter).second.m_scPacket.m_Position[i].m_Y = position[i].m_Y;
+			//	(*iter).second.m_scPacket.m_Position = g_clientPosition[i];
+			//	
+			//	if (WSASend((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, 0,
+			//		&((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
+			//	{
+			//		if (WSAGetLastError() != WSA_IO_PENDING)
+			//		{
+			//			printf("Error - IO pending Failure\n");
+			//			closesocket(client_socket);
+			//			break;
+			//		}
+			//	}
 			//}
+			for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
+			{
+				(*iter).second.m_scPacket.m_Position = (*iter2).second.m_scPacket.m_Position;
+				if (WSASend((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, 0,
+					&((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
+				{
+					if (WSAGetLastError() != WSA_IO_PENDING)
+					{
+						printf("Error - IO pending Failure\n");
+						closesocket(client_socket);
+						break;
+					}
+				}
+			}
 
-			(*iter).second.m_dataBuffer.len = sizeof(SC_MovePacket);
-			(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scPacket);
-
-			//(*iter).second.m_sc_InitPacket.m_PlayerID = playerID;
-			//(*iter).second.m_sc_InitPacket.m_ClientSize = g_clientList.size();
-			//(*iter).second.m_sc_InitPacket.m_Position.m_X = x;
-			//(*iter).second.m_sc_InitPacket.m_Position.m_Y = y;
-			//(*iter).second.m_dataBuffer.len = sizeof(SC_InitPacket);
-			//(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_sc_InitPacket);
-
-			//(*iter).second.m_dataBuffer.len = sizeof(CS_MovePacket);
-			//(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_csPacket);
-
-			// 중첩 소캣을 지정하고 완료시 실행될 함수를 넘겨준다.
-			(*iter).second.m_overlapped.hEvent = (HANDLE)(*iter).second.m_socket;
 		}
 		else
 		{
 			closesocket(client_socket);
 			break;
 		}
-
-		//Update(client_socket, flags);
-		//for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
-		//{
-		//if (WSARecv((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, &flags,
-		//	&((*iter).second.m_overlapped), recv_callback) == SOCKET_ERROR)
-		//{
-		//	if (WSAGetLastError() != WSA_IO_PENDING)
-		//	{
-		//		printf("Error - IO pending Failure\n");
-		//		closesocket(client_socket);
-		//		break;
-		//	}
-		//}
-		for (int i = 0; i < 2; ++i)
-		{
-			(*iter).second.m_scPacket.m_Position = g_clientPosition[i];
-
-			if (WSASend((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, 0,
-				&((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
-			{
-				if (WSAGetLastError() != WSA_IO_PENDING)
-				{
-					printf("Error - IO pending Failure\n");
-					closesocket(client_socket);
-					break;
-				}
-			}
-		}
-		//}
 	}
 
 	closesocket(listen_socket);
@@ -254,89 +226,6 @@ bool Initialize()
 	return true;
 }
 
-void Update(SOCKET& client_socket, DWORD& flag)
-{
-	// 1 : 버퍼 카운트
-	// flag에 NULL을 넣으면 안됨 => 0인지 아닌지 확인하기 때문에
-	// 클라이언트마다 갖고있는 overlapped 구조체를 넣어줌
-	// recv_callback에서 패킷을 처리함.
-	auto iter = g_clientList.find(client_socket);
-	if (iter != g_clientList.end())
-	{
-		index = 0;
-		for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
-		{
-			if (WSASend((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, 0,
-				&((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
-			{
-				if (WSAGetLastError() != WSA_IO_PENDING)
-				{
-					printf("Error - IO pending Failure\n");
-					return;
-				}
-			}
-			/*	if (WSARecv((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, NULL, &flag,
-					&((*iter).second.m_overlapped), Initrecv_callback) == SOCKET_ERROR)
-				{
-					if (WSAGetLastError() != WSA_IO_PENDING)
-					{
-						printf("Error - IO pending Failure\n");
-						return;
-					}
-				}*/
-				// 동기식 I/O로 발생한 경우
-			else
-			{
-				cout << "Non Overlapped Recv return.\n";
-				return;
-			}
-		}
-
-		/*	if (WSASend((*iter).second.m_socket, &(*iter).second.m_dataBuffer, 1, nullptr, 0,
-				&((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
-			{
-				if (WSAGetLastError() != WSA_IO_PENDING)
-				{
-					printf("Error - IO pending Failure\n");
-					return;
-				}
-			}*/
-			//// 동기식 I/O로 발생한 경우
-			//else
-			//{
-			//	cout << "Non Overlapped Send return" << endl;
-			//	return;
-			//}
-	}
-	else
-		return;
-}
-
-//void KeyDistribute(SOCKET& client_socket, CS_MovePacket& key)
-//{
-//	auto iter = g_clientList.find(client_socket);
-//	if (iter != g_clientList.end())
-//	{
-//		switch (key.m_Key)
-//		{
-//		case KEY_RIGHT:
-//			(*iter).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_X += 100;
-//			break;
-//		case KEY_LEFT:
-//			(*iter).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_X -= 100;
-//			break;
-//		case KEY_UP:
-//			(*iter).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_Y += 100;
-//			break;
-//		case KEY_DOWN:
-//			(*iter).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_Y -= 100;
-//			break;
-//			// KEY_IDLE
-//		default:
-//			break;
-//		}
-//	}
-//}
 
 // 패킷처리를 recv_callback에서 담당한다.
 // recv_callback 1개의 함수에서 소켓마다 다르게 처리한다.
@@ -372,29 +261,10 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		// 패킷처리가 끝났으면, 다시 recv( )를 해야함
 		// 그렇지 않으면, send( )하는 동안 recv( )를 할 수 없어서 지연 됨.
 
-		//byte playerID = g_clientList.size() - 1;
-		////(*iter).second.m_scPacket.m_PlayerID = playerID;
-		////(*iter).second.m_scPacket.m_ClientSize = g_clientList.size();
-		////(*iter).second.m_scPacket.m_Position[playerID].m_X = -350.f;
-		////(*iter).second.m_scPacket.m_Position[playerID].m_Y = -350.f;
-		//(*iter).second.m_dataBuffer.len = sizeof(SC_MovePacket);
-		//(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scPacket);
-		//ZeroMemory(&((*iter).second.m_overlapped), sizeof(WSAOVERLAPPED));
-		//(*iter).second.m_overlapped.hEvent = (HANDLE)client_socket;
-		//// 받은 데이터를 send( )
-		//// send_callback을 호출
-		//if (WSASend(client_socket, &(*iter).second.m_dataBuffer, 1, &dataBytes, 0, &((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
-		//{
-		//	if (WSAGetLastError() != WSA_IO_PENDING)
-		//		cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
-		//}
-
 		byte playerID = g_clientList.size() - 1;
 		//(*iter).second.m_scPacket.m_PlayerID = playerID;
-		//(*iter).second.m_scPacket.m_ClientSize = g_clientList.size();
-		//(*iter).second.m_scPacket.m_Position[playerID].m_X = -350.f;
-		//(*iter).second.m_scPacket.m_Position[playerID].m_Y = -350.f;
-		(*iter).second.m_dataBuffer.len = sizeof(SC_MovePacket);
+		(*iter).second.m_scPacket.m_ClientSize = g_clientList.size();
+		(*iter).second.m_dataBuffer.len = sizeof(SC_MovePacket2);
 		ZeroMemory(&((*iter).second.m_overlapped), sizeof(WSAOVERLAPPED));
 		(*iter).second.m_overlapped.hEvent = (HANDLE)client_socket;
 		// 받은 데이터를 send( )
@@ -455,35 +325,6 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		}
 	}
 }
-
-//void PacketProcess(SOCKET& client_socket, CS_MovePacket& csPacket)
-//{
-//	auto iter = g_clientList.find(client_socket);
-//	if (iter != g_clientList.end())
-//	{
-//		for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
-//		{
-//			switch (csPacket.m_Key)
-//			{
-//			case KEY_RIGHT:
-//				(*iter2).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_X += 100;
-//				break;
-//			case KEY_LEFT:
-//				(*iter2).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_X -= 100;
-//				break;
-//			case KEY_UP:
-//				(*iter2).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_Y += 100;
-//				break;
-//			case KEY_DOWN:
-//				(*iter2).second.m_scPacket.m_Position[(*iter).second.m_scPacket.m_PlayerID].m_Y -= 100;
-//				break;
-//				// KEY_IDLE
-//			default:
-//				break;
-//			}
-//		}
-//	}
-//}
 
 void PacketProcess2(SOCKET& client_socket, CS_MovePacket& csPacket)
 {
