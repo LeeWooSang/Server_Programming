@@ -1,5 +1,4 @@
 #include "Defines.h"
-#include "Player.h"
 
 struct SOCKETINFO
 {
@@ -12,8 +11,7 @@ struct SOCKETINFO
 	SC_UpdatePacket	m_scUpdatePacket;
 	CS_MovePacket	m_csPacket;
 
-	byte			m_ID;
-	Position	m_Position;
+	ClientInfo	m_ClientInfo;
 
 	int								m_receiveBytes;
 	int								m_sendBytes;
@@ -162,8 +160,8 @@ bool Initialize()
 			ZeroMemory(&((*iter).second), sizeof(SOCKETINFO));
 			(*iter).second.m_socket = client_socket;
 
-			(*iter).second.m_ID = g_clientList.size() - 1;
-			(*iter).second.m_Position = position[(*iter).second.m_ID];
+			(*iter).second.m_ClientInfo.m_ID = g_clientList.size() - 1;
+			(*iter).second.m_ClientInfo.m_Position = position[(*iter).second.m_ClientInfo.m_ID];
 
 			(*iter).second.m_scInitPacket.m_ClientSize = g_clientList.size();
 			(*iter).second.m_dataBuffer.len = sizeof(SC_InitPacket);
@@ -173,8 +171,8 @@ bool Initialize()
 			byte count = g_clientList.size() - 1;
 			for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
 			{
-				(*iter).second.m_scInitPacket.m_PlayerID = (*iter2).second.m_ID;
-				(*iter).second.m_scInitPacket.m_Position = (*iter2).second.m_Position;
+				(*iter).second.m_scInitPacket.m_PlayerID = (*iter2).second.m_ClientInfo.m_ID;
+				(*iter).second.m_scInitPacket.m_Position = (*iter2).second.m_ClientInfo.m_Position;
 				(*iter).second.m_scInitPacket.m_RemainPacket = count--;
 
 				if ((*iter).second.m_socket == (*iter2).second.m_socket)
@@ -253,8 +251,8 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		byte count = g_clientList.size() - 1;
 		for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
 		{
-			(*iter).second.m_scUpdatePacket.m_PlayerID = (*iter2).second.m_ID;
-			(*iter).second.m_scUpdatePacket.m_Position = (*iter2).second.m_Position;
+			(*iter).second.m_scUpdatePacket.m_PlayerID = (*iter2).second.m_ClientInfo.m_ID;
+			(*iter).second.m_scUpdatePacket.m_Position = (*iter2).second.m_ClientInfo.m_Position;
 
 			(*iter).second.m_scUpdatePacket.m_RemainPacket = count--;
 			if (WSASend(client_socket, &(*iter).second.m_dataBuffer, 1, &dataBytes, 0, &((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
@@ -317,16 +315,16 @@ void PacketProcess(SOCKET& client_socket, CS_MovePacket& csPacket)
 		switch (csPacket.m_Key)
 		{
 		case KEY_RIGHT:
-			(*iter).second.m_Position.m_X += 100;
+			(*iter).second.m_ClientInfo.m_Position.m_X += 100;
 			break;
 		case KEY_LEFT:
-			(*iter).second.m_Position.m_X -= 100;
+			(*iter).second.m_ClientInfo.m_Position.m_X -= 100;
 			break;
 		case KEY_UP:
-			(*iter).second.m_Position.m_Y += 100;
+			(*iter).second.m_ClientInfo.m_Position.m_Y += 100;
 			break;
 		case KEY_DOWN:
-			(*iter).second.m_Position.m_Y -= 100;
+			(*iter).second.m_ClientInfo.m_Position.m_Y -= 100;
 			break;
 			// KEY_IDLE
 		default:
