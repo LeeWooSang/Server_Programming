@@ -21,8 +21,18 @@ enum KEY
 
 struct Position
 {
-	float m_X = 0.f;
-	float m_Y = 0.f;
+	float m_X;
+	float m_Y;
+};
+
+struct SC_InitPacket
+{
+	byte m_PlayerID = 0;
+	byte m_ClientSize = 0;
+	Position m_Position = { -350, -350 };
+	byte m_RemainPacket = 0;
+	// 나인지 다른 플레이어인지 구분하기 위해
+	bool m_Check = false;
 };
 
 // 서버에서 클라에게 좌표 값만 보냄
@@ -33,11 +43,12 @@ struct SC_MovePacket
 	Position m_Position[2] = { {-350, -350 }, {-250, -350} };
 };
 
-struct SC_MovePacket2
+struct SC_UpdatePacket
 {
 	byte m_PlayerID = 0;
 	byte m_ClientSize = 0;
 	Position m_Position = { 0 };
+	byte m_RemainPacket = 0;
 };
 
 // 클라에서 서버에게 어떤 키인지만 보냄
