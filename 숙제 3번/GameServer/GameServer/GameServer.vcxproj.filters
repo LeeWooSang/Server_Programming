@@ -9,36 +9,15 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Code\GameObject">
-      <UniqueIdentifier>{a17ede68-6f4f-4f52-9d1b-8c42226dee72}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Code\GameObject\Player">
-      <UniqueIdentifier>{7e912dfd-4c92-4ce9-bd58-0b5e6026ac91}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Code</Filter>
-    </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Code\GameObject\Player</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Code\GameObject</Filter>
-    </ClCompile>
-    <ClCompile Include="main2.cpp">
-      <Filter>Code</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Defines.h">
       <Filter>Code</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Code\GameObject\Player</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Code\GameObject</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Overlapped_Server.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -17,13 +17,19 @@ enum KEY
 	KEY_DOWN	= 0x08
 };
 
-#pragma pack(1)
-
 struct Position
 {
 	float m_X;
 	float m_Y;
 };
+
+struct ClientInfo
+{
+	byte			m_ID;
+	Position	m_Position;
+};
+
+#pragma pack(1)
 
 struct SC_InitPacket
 {
@@ -33,14 +39,6 @@ struct SC_InitPacket
 	byte m_RemainPacket = 0;
 	// 나인지 다른 플레이어인지 구분하기 위해
 	bool m_Check = false;
-};
-
-// 서버에서 클라에게 좌표 값만 보냄
-struct SC_MovePacket
-{
-	byte m_PlayerID = 0;
-	byte m_ClientSize = 0;
-	Position m_Position[2] = { {-350, -350 }, {-250, -350} };
 };
 
 struct SC_UpdatePacket
