@@ -1,16 +1,14 @@
 #include "stdafx.h"
 #include "Network.h"
 #include "Player.h"
+#include "Scene.h"
 
-Network::Network() : m_cs_packet{ 0 }, m_sc_packet{ 0 }, m_socketInfo{nullptr}
+Network::Network() : m_Server_socket{ 0 }, m_cs_packet{ 0 }, m_scInitPacket{ 0 }, m_scUpdatePacket{ 0 }, m_socketInfo{ nullptr }
 {
 }
 
 Network::~Network()
 {
-	if (m_socketInfo)
-		delete m_socketInfo;
-
 	closesocket(m_Server_socket);
 	WSACleanup();
 }
@@ -81,16 +79,14 @@ bool Network::Initialize()
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return false;
 
-	//m_Server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	m_Server_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	m_Server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (m_Server_socket == INVALID_SOCKET)
 	{
 		err_quit("socket( )");
-		return 0;
+		return false;
 	}
 
 	SOCKADDR_IN server_addr;
-
 	//	connect
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
@@ -103,57 +99,104 @@ bool Network::Initialize()
 		return false;
 	}
 
-	m_socketInfo = new SOCKETINFO;
-
 	return true;
 }
 
-void Network::Update()
+bool Network::Packet_Initialize(byte PacketType)
 {
+	switch (PacketType)
+	{
+	case Network::InitPacket:
+		m_scInitPacket = { 0 };
+		break;
+
+	case Network::UpdatePacket:
+		m_scUpdatePacket = { 0 };
+		m_scUpdatePacket.m_LeavePlayerID = -1;
+		break;
+
+	case Network::CS_Packet:
+		m_cs_packet = { 0 };
+		break;
+
+	default:
+		return false;
+	}
+	return true;
 }
 
 // 내 자신의 정보를 받아옴
-void Network::InitRecvPacket()
+void Network::Recv_InitPacket(Scene* pScene)
 {
-	int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
-	if (retval == SOCKET_ERROR)
+	do
 	{
-		err_display("recvn( )");
-		return;
-	}
-}
+		Packet_Initialize(Network::InitPacket);
 
-void Network::RecvPacket(const map<byte, Player*>& PlayerList)
-{
-	////데이터 받기
-	//int retval = recvn(m_Server_socket, (char*)&m_sc_packet, sizeof(m_sc_packet), 0);
-	//if (retval == SOCKET_ERROR)
-	//{
-	//	err_display("recvn( )");
-	//	return;
-	//}
-
-	for (int i = 0; i < 2; ++i)
-	{
-		int retval = recvn(m_Server_socket, (char*)&m_sc_packet2, sizeof(m_sc_packet2), 0);
+		int retval = recvn(m_Server_socket, (char*)&m_scInitPacket, sizeof(SC_InitPacket), 0);
 		if (retval == SOCKET_ERROR)
 		{
+			cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
 			err_display("recvn( )");
 			return;
 		}
 
-		cout << m_sc_packet2.m_Position.m_X << ", " << m_sc_packet2.m_Position.m_Y << endl;
+		if (!pScene->PlayerCreate(Network::InitPacket, m_scInitPacket, m_scUpdatePacket))
+			return;
+
+	} while (m_scInitPacket.m_RemainPacket);
+
+	// Non_Blocking
+#ifdef Non_Blocking
+	// 넌블러킹으로 전환
+	u_long on = 1;
+	int optval = ioctlsocket(m_Server_socket, FIONBIO, &on);
+	if (optval == SOCKET_ERROR)
+	{
+		err_quit("ioctlsocket( )");
+		return;
 	}
+#endif 
+}
+
+void Network::Recv_UpdatePacket(Scene* pScene, map<byte, Player*>& PlayerList)
+{
+	do
+	{
+		Packet_Initialize(Network::UpdatePacket);
+
+		int retval = recvn(m_Server_socket, (char*)&m_scUpdatePacket, sizeof(m_scUpdatePacket), 0);
+		if (retval == SOCKET_ERROR)
+		{
+			if (WSAGetLastError() == WSAEWOULDBLOCK)
+			{
+				break;
+			}
+			else
+			{
+				cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
+				err_display("recvn( )");
+				return;
+			}
+		}
+
+		auto iter = PlayerList.find(m_scUpdatePacket.m_PlayerID);
+		if (iter != PlayerList.end())
+			(*iter).second->setPosition(m_scUpdatePacket.m_Position);
+		// 플레이어 새로 들어왔으니, 플레이어 생성해줌
+		else
+			pScene->PlayerCreate(Network::UpdatePacket, m_scInitPacket, m_scUpdatePacket);
+	} while (m_scUpdatePacket.m_RemainPacket);
+	
 }
 
 void Network::SendPacket()
 {
-	// 데이터 보내기
 	int retval = send(m_Server_socket, (char*)&m_cs_packet, sizeof(m_cs_packet), 0);
 	if (retval == SOCKET_ERROR)
 	{
+		cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
 		err_display("send( )");
 		return;
 	}
+	Packet_Initialize(Network::InitPacket);
 }
-

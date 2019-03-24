@@ -3,7 +3,7 @@
 #include "Renderer.h"
 
 Player::Player()
-	: GameObject(), m_HpBar_width(0), m_HpBar_height(0), m_Speed(0), m_TextureID(0)
+	: GameObject(), m_HpBar_width(0), m_HpBar_height(0), m_Speed(0), m_TextureID(0), m_ID(0), m_Check(false)
 {
 }
 
@@ -13,26 +13,6 @@ Player::~Player()
 
  int Player::ProcessInput()
 {
-	//if (GetAsyncKeyState(VK_RIGHT) & 0x0001)
-	//	m_X += 100;
-	////if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-	////	//m_X += m_Speed * m_ElapsedTime;
-
-	//if (GetAsyncKeyState(VK_LEFT) & 0x0001)
-	//	m_X -= 100;
-	////if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-	////	m_X -= m_Speed * m_ElapsedTime;
-
-	//if (GetAsyncKeyState(VK_UP) & 0x0001)
-	//	m_Y += 100;
-	////if (GetAsyncKeyState(VK_UP) & 0x8000)
-	////	m_Y += m_Speed * m_ElapsedTime;
-
-	//if (GetAsyncKeyState(VK_DOWN) & 0x0001)
-	//	m_Y -= 100;
-	////if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-	////	m_Y -= m_Speed * m_ElapsedTime;
-
 	 if (GetAsyncKeyState(VK_RIGHT) & 0x0001)			
 		 return KEY_RIGHT;
 	 else if (GetAsyncKeyState(VK_LEFT) & 0x0001)		return KEY_LEFT;

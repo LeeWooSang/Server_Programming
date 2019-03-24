@@ -5,7 +5,7 @@
 #include "Player.h"
 #include "Network.h"
 
-Scene::Scene(int width , int height)
+Scene::Scene(int width , int height) : m_pRenderer{nullptr}, m_SendTime{0}
 {
 	 m_pRenderer = new Renderer(width, height);
 
@@ -23,14 +23,14 @@ Scene::~Scene()
 
 int Scene::ProcessInput()
 {
-	auto iter = m_PlayerList.find(m_id);
-	if (iter != m_PlayerList.end())
-		return ((*iter).second)->ProcessInput();
-	else
-		return 0;
+	for (auto iter = m_PlayerList.begin(); iter != m_PlayerList.end(); ++iter)
+	{
+		if ((*iter).second->getCheck())
+			return (*iter).second->ProcessInput();
+	}
 }
 
-bool Scene::Initialize(const SC_MovePacket& sc_Packet)
+bool Scene::Initialize()
 {
 	int size = 8;
 	float width = 0.f, height = 0.f;
@@ -54,15 +54,6 @@ bool Scene::Initialize(const SC_MovePacket& sc_Packet)
 		++order;
 	}
 
-	// 내 자신을 생성한다.
-	Player* pPlayer = new Player;
-	if (!pPlayer->Initialize(m_pRenderer))
-		return false;
-	pPlayer->setID(sc_Packet.m_PlayerID);
-	pPlayer->setPosition(sc_Packet.m_Position[pPlayer->getID()]);
-	m_PlayerList.emplace(pPlayer->getID(), pPlayer);
-	m_id = pPlayer->getID();
-
 	return true;
 }
 
@@ -70,49 +61,27 @@ void Scene::PacketProcess(Network& network)
 {
 	CS_MovePacket cs_packet;
 	byte key = Scene::ProcessInput();
-//	if (key != KEY_IDLE)
-//	{
+#ifdef Non_Blocking
+	if (m_SendTime > 1.f)
+	{
 		cs_packet.m_Key = key;
 		network.setCSPacket(cs_packet);
 		network.SendPacket();
-	//}
-
-	network.RecvPacket(m_PlayerList);
-
-	if (m_PlayerList.size() < network.getSCPacket().m_ClientSize)
-	{
-		byte NewPlayerSize = network.getSCPacket().m_ClientSize - m_PlayerList.size();
-		for (int i = 0; i < NewPlayerSize; ++i)
-		{
-			Player* pPlayer = new Player;
-			if (!pPlayer->Initialize(m_pRenderer))
-				return;
-			// 먼저 들어온 플레이어 정보를 어떻게 저장함?
-			m_PlayerList.emplace(3, pPlayer);
-		}
 	}
-	//// 플레이어 생성
-	//for (int i = m_PlayerList.size(); i < network.getSCPacket().m_ClientSize; ++i)
-	//{
-	//	Player* pPlayer = new Player;
-	//	if (!pPlayer->Initialize(m_pRenderer))
-	//		return;
-	//	// 먼저 들어온 플레이어 정보를 어떻게 저장함?
-	//	m_PlayerList.emplace(0, pPlayer);
-	//}
-
-	int i = 0;
-	for (auto iter = m_PlayerList.begin(); iter != m_PlayerList.end(); ++iter)
-	{
-		(*iter).second->setID(network.getSCPacket().m_PlayerID);
-		(*iter).second->setPosition(network.getSCPacket().m_Position[i++]);
-		
-		//cout << (*iter).second->getPosition().m_X << ", " << (*iter).second->getPosition().m_Y << endl;
-	}
+#else
+	cs_packet.m_Key = key;
+	network.setCSPacket(cs_packet);
+	network.SendPacket();
+#endif
+	network.Recv_UpdatePacket(this, m_PlayerList);
+	// 탈주한 플레이어가 있는지 확인한다.
+	LeavePlayerDestroy(network.getscUpdatePacket());
 }
 
 void Scene::Update(float elapsedTime, Network& network)
 {
+	m_SendTime += elapsedTime * 0.001;
+	
 	PacketProcess(network);
 
 	// ChessBoard Update;
@@ -156,4 +125,44 @@ void Scene::Release()
 		iter = m_PlayerList.erase(iter);
 	}
 	m_PlayerList.clear();
+}
+
+bool Scene::PlayerCreate(byte PacketType, const SC_InitPacket& SCInitPacket, const SC_UpdatePacket& SCUpdatePacket)
+{
+	// 플레이어 생성
+	Player* pPlayer = new Player;
+	if (!pPlayer->Initialize(m_pRenderer))
+		return false;
+
+	switch (PacketType)
+	{
+	case Network::InitPacket:
+		pPlayer->setID(SCInitPacket.m_PlayerID);
+		pPlayer->setPosition(SCInitPacket.m_Position);
+		pPlayer->setCheck(SCInitPacket.m_Check);
+		break;
+
+	case Network::UpdatePacket:
+		pPlayer->setID(SCUpdatePacket.m_PlayerID);
+		pPlayer->setPosition(SCUpdatePacket.m_Position);
+		break;
+
+	default:
+		return false;
+	}
+
+	m_PlayerList.emplace(pPlayer->getID(), pPlayer);
+
+	return true;
+}
+
+void Scene::LeavePlayerDestroy(const SC_UpdatePacket& SCUpdatePacket)
+{
+	auto iter = m_PlayerList.find(SCUpdatePacket.m_LeavePlayerID);
+	if (iter != m_PlayerList.end())
+	{
+		delete (*iter).second;
+		iter = m_PlayerList.erase(iter);
+		cout << (int)SCUpdatePacket.m_LeavePlayerID << "번 플레이어 탈주" << endl;
+	}
 }
