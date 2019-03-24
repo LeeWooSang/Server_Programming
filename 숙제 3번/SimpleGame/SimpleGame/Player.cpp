@@ -21,6 +21,20 @@ Player::~Player()
 	 else																		return KEY_IDLE;
 }
 
+ int Player::ProcessInput(int key, int x, int y)
+ {
+	 if (key == GLUT_KEY_RIGHT)
+		 return KEY_RIGHT;
+	 else if (key == GLUT_KEY_LEFT)
+		 return KEY_LEFT;
+	 else if (key == GLUT_KEY_UP)
+		 return KEY_UP;
+	 else if (key == GLUT_KEY_DOWN)
+		 return KEY_DOWN;
+	 else
+		 return KEY_IDLE;
+ }
+
 bool Player::Initialize(Renderer* pRenderer)
 {
 	m_Position.m_X = 0.f;
@@ -38,8 +52,23 @@ bool Player::Initialize(Renderer* pRenderer)
 	m_HpBar_height = m_Size / 10.f;
 
 	m_Speed = 100.f;
-	m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/Horse.png");
 
+	//random_device seed;
+	//default_random_engine dre(seed());
+	//uniform_int_distribution<int> uid(Pawn, King);
+	//string filename = "./Textures/PNGs/";
+	//switch (uid(dre))
+	//{
+	//case Pawn:	filename += "Chess_Pawn.png";		break;
+	//case Rookie:	filename += "Chess_Rookie.png";		break;
+	//case Knight:	filename += "Chess_Knight.png";		break;
+	//case Bishop: filename += "Chess_Bishop.png";		break;
+	//case Queen: filename += "Chess_Queen.png";		break;
+	//case King:		filename += "Chess_King.png";			break;
+	//}
+
+	//m_TextureID = pRenderer->CreatePngTexture(const_cast<char*>(filename.c_str()));
+	m_TextureID = pRenderer->CreatePngTexture("./Textures/PNGs/Chess_Knight.png");
 	return true;
 }
 

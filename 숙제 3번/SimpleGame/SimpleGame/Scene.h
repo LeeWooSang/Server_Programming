@@ -11,6 +11,7 @@ public:
 	~Scene();
 
 	int ProcessInput();
+	int ProcessInput(int, int, int);
 
 	bool Initialize();
 	void PacketProcess(Network& network);
@@ -25,6 +26,9 @@ public:
 	void LeavePlayerDestroy(const SC_UpdatePacket&);
 
 	map<byte, Player*>& getPlayerList()	{ return m_PlayerList; }
+
+	float getTime()	const { return m_SendTime; }
+	void setTime(float time) { m_SendTime = time; }
 
 private:
 	Renderer*								m_pRenderer;

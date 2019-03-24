@@ -194,9 +194,14 @@ void Network::SendPacket()
 	int retval = send(m_Server_socket, (char*)&m_cs_packet, sizeof(m_cs_packet), 0);
 	if (retval == SOCKET_ERROR)
 	{
-		cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
-		err_display("send( )");
-		return;
+		if (WSAGetLastError() == WSAEWOULDBLOCK)
+			return;
+		else
+		{
+			cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
+			err_display("send( )");
+			return;
+		}
 	}
 	Packet_Initialize(Network::InitPacket);
 }

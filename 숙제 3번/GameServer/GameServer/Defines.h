@@ -4,7 +4,7 @@
 #include <WinSock2.h>
 #include <Windows.h>
 #include <map>
-#include <conio.h>
+#include <random>
 using namespace std;
 
 enum SERVER_INFO { SERVER_PORT = 9000, BUFSIZE = 1024 };
@@ -30,6 +30,8 @@ struct ClientInfo
 	byte			m_ID;
 	// 플레이어 위치
 	Position	m_Position;
+	// 플레이어 텍스쳐 아이디
+	byte			m_TextureID;
 	// 탈주한 플레이어 ID
 	char			m_LeavePlayerID;
 };
@@ -59,7 +61,6 @@ struct SC_UpdatePacket
 // 클라에서 서버에게 어떤 키인지만 보냄
 struct CS_MovePacket
 {
-	byte m_PlayerID = 0;
 	byte m_Key = KEY_IDLE;
 };
 #pragma pack()

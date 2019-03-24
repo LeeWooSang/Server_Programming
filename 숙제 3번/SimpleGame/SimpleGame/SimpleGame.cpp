@@ -45,8 +45,18 @@ void KeyInput(unsigned char key, int x, int y)
 		RenderScene();
 }
 
+// 이동관련 키만 받음
 void SpecialKeyInput(int key, int x, int y)
 {
+	//if (g_pScene->getTime() > 0.1f)
+	//{
+		CS_MovePacket csPacket;
+		csPacket.m_Key = g_pScene->ProcessInput(key, x, y);
+		g_Network.setCSPacket(csPacket);
+		g_Network.SendPacket();
+		g_pScene->setTime(0);
+	//}
+
 	RenderScene();
 }
 

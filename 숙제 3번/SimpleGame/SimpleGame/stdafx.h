@@ -15,13 +15,13 @@
 #include <list>
 #include <WinSock2.h>
 #include <Windows.h>
+#include <random>
 using namespace std;
 
 #define WIDTH 800
 #define HEIGHT 800
 
 #define SERVER_IP "127.0.0.1"
-//#define SERVER_IP "192.168.219.106"
 #define Non_Blocking
 
 enum SERVER_INFO { SERVER_PORT = 9000, BUFSIZE = 1024 };
@@ -65,7 +65,6 @@ struct SC_UpdatePacket
 // 클라에서 서버에게 어떤 키인지만 보냄
 struct CS_MovePacket
 {
-	byte m_PlayerID = 0;
 	byte m_Key = KEY_IDLE;
 };
 

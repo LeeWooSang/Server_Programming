@@ -11,15 +11,17 @@ struct SOCKETINFO
 	SC_UpdatePacket	m_scUpdatePacket;
 	CS_MovePacket	m_csPacket;
 
-	ClientInfo	m_ClientInfo;
+	ClientInfo				m_ClientInfo;
 
-	int								m_receiveBytes;
-	int								m_sendBytes;
+	int							m_receiveBytes;
+	int							m_sendBytes;
 };
 
 bool CtrlHandler(DWORD);
 void err_quit(const char*);
 void err_display(const char*);
+
+void ClientInfo_Initialize(ClientInfo*);
 bool Initialize();
 void Release();
 void PacketProcess(SOCKET& client_socket, CS_MovePacket& csPacket);
@@ -90,6 +92,34 @@ void err_display(const char* msg)
 	LocalFree(lpMsgBuf);
 }
 
+void ClientInfo_Initialize(ClientInfo* pClientInfo)
+{
+	Position position[10];
+	float termX = 0.f;
+	for (int i = 0; i < 10; ++i)
+	{
+		position[i].m_X = -350.f + termX;
+		position[i].m_Y = -350.f;
+		termX += 100.f;
+	}
+	termX = 0;
+	for (int i = 8; i < 10; ++i)
+	{
+		position[i].m_X = -350.f + termX;
+		position[i].m_Y = -250.f;
+		termX += 100.f;
+	}
+
+	random_device seed;
+	default_random_engine dre(seed());
+	uniform_int_distribution<int> uid(0, 5);
+	for (int i = 0; i < 10; ++i)
+	{
+		pClientInfo[i].m_Position = position[i];
+		pClientInfo[i].m_TextureID = uid(dre);
+	}
+}
+
 bool Initialize()
 {
 	int retval = 0;
@@ -142,21 +172,8 @@ bool Initialize()
 	DWORD flags = 0;
 	static byte playerID = 0;
 
-	Position position[10];
-	float termX = 0.f;
-	for (int i = 0; i < 10; ++i)
-	{
-		position[i].m_X = -350.f + termX;
-		position[i].m_Y = -350.f;
-		termX += 100.f;
-	}
-	termX = 0;
-	for (int i = 8; i < 10; ++i)
-	{
-		position[i].m_X = -350.f + termX;
-		position[i].m_Y = -250.f;
-		termX += 100.f;
-	}
+	ClientInfo clientInfo[10];
+	ClientInfo_Initialize(clientInfo);
 
 	while (true)
 	{
@@ -171,6 +188,11 @@ bool Initialize()
 		cout << "\n[ TCP 서버 ] 클라이언트 접속 - IP : " << inet_ntoa(client_addr.sin_addr)
 			<< ", 포트 번호 : " << ntohs(client_addr.sin_port) << endl;
 
+		BOOL option = true;
+		retval = setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, (char*)&option, sizeof(option));
+		if (retval == SOCKET_ERROR)
+			err_quit("setsockopt( )");
+
 		// 클라이언트 정보를 0으로 초기화
 		g_clientList.emplace(client_socket, SOCKETINFO{});
 		auto iter = g_clientList.find(client_socket);
@@ -181,7 +203,9 @@ bool Initialize()
 			(*iter).second.m_socket = client_socket;
 
 			(*iter).second.m_ClientInfo.m_ID = playerID++;
-			(*iter).second.m_ClientInfo.m_Position = position[(*iter).second.m_ClientInfo.m_ID];
+			(*iter).second.m_ClientInfo.m_Position = clientInfo[(*iter).second.m_ClientInfo.m_ID].m_Position;
+			(*iter).second.m_ClientInfo.m_TextureID = clientInfo[(*iter).second.m_ClientInfo.m_ID].m_TextureID;
+			
 			(*iter).second.m_ClientInfo.m_LeavePlayerID = -1;
 
 			(*iter).second.m_scInitPacket.m_ClientSize = g_clientList.size();
@@ -255,25 +279,11 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 	// 클라이언트에서 closesocket( )을 호출한 경우
 	if (dataBytes == 0)
 	{
-		auto iter = g_clientList.find(client_socket);
-		if (iter != g_clientList.end())
-		{
-			// 나간 플레이어 ID를 접속해있는 플레이어에게 저장시켜줌
-			for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
-				(*iter2).second.m_ClientInfo.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_ID;
-
-			cout << "클라 게임 종료" << endl;
-			// 해당하는 클라의 소켓을 서버에서도 지움.
-			closesocket((*iter).second.m_socket);
-			iter = g_clientList.erase(iter);
-		}
-		return;
 	}
 
 	auto iter = g_clientList.find(client_socket);
 	if (iter != g_clientList.end())
 	{
-		//cout << "TRACE - Receive : KEY_LEFT - (" << dataBytes << ") bytes)" << endl;
 		PacketProcess(client_socket, g_clientList[client_socket].m_csPacket);
 
 		// 패킷처리가 끝났으면, 다시 recv( )를 해야함
@@ -297,7 +307,21 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 			if (WSASend(client_socket, &(*iter).second.m_dataBuffer, 1, &dataBytes, 0, &((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING)
+				{
 					cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
+
+					// 클라 탈주
+					if (WSAGetLastError() == WSAECONNRESET || WSAGetLastError() == WSAECONNABORTED)
+					{
+						for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
+							(*iter2).second.m_ClientInfo.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_ID;
+						cout << "클라 게임 종료" << endl;
+						// 해당하는 클라의 소켓을 서버에서도 지움.
+						closesocket((*iter).second.m_socket);
+						iter = g_clientList.erase(iter);
+						break;
+					}		
+				}
 			}
 		}
 	}
@@ -313,14 +337,6 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 	// 클라이언트에서 closesocket( )을 호출한 경우
 	if (dataBytes == 0)
 	{
-		//auto iter = g_clientList.find(client_socket);
-		//if (iter != g_clientList.end())
-		//{
-		//	// 해당하는 클라의 소켓을 서버에서도 지움.
-		//	closesocket((*iter).second.m_socket);
-		//	iter = g_clientList.erase(iter);
-		//}
-		return;
 	}
 
 	auto iter = g_clientList.find(client_socket);
@@ -340,8 +356,21 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		if (WSARecv(client_socket, &(*iter).second.m_dataBuffer, 1, &receiveBytes, &flags, &((*iter).second.m_overlapped), recv_callback) == SOCKET_ERROR)
 		{
 			if (WSAGetLastError() != WSA_IO_PENDING)
+			{
 				cout << "Error - Fail WSARecv(error_code : " << WSAGetLastError() << ")" << endl;
-			// 클라가 아직 send 안함
+				// 클라 탈주
+				if (WSAGetLastError() == WSAECONNRESET || WSAGetLastError() == WSAECONNABORTED)
+				{
+					for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
+						(*iter2).second.m_ClientInfo.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_ID;
+					cout << "클라 게임 종료" << endl;
+					// 해당하는 클라의 소켓을 서버에서도 지움.
+					closesocket((*iter).second.m_socket);
+					iter = g_clientList.erase(iter);
+
+					return;
+				}
+			}
 		}
 	}
 }

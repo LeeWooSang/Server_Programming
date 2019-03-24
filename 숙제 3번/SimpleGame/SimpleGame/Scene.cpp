@@ -30,6 +30,15 @@ int Scene::ProcessInput()
 	}
 }
 
+int Scene::ProcessInput(int key, int x, int y)
+{
+	for (auto iter = m_PlayerList.begin(); iter != m_PlayerList.end(); ++iter)
+	{
+		if ((*iter).second->getCheck())
+			return (*iter).second->ProcessInput(key, x, y);
+	}
+}
+
 bool Scene::Initialize()
 {
 	int size = 8;
@@ -59,19 +68,16 @@ bool Scene::Initialize()
 
 void Scene::PacketProcess(Network& network)
 {
-	CS_MovePacket cs_packet;
-	byte key = Scene::ProcessInput();
+	// 키 입력 없을 땐, 1초마다 IDLE 보냄
 #ifdef Non_Blocking
 	if (m_SendTime > 1.f)
 	{
-		cs_packet.m_Key = key;
+		CS_MovePacket cs_packet;
+		cs_packet.m_Key = KEY_IDLE;
 		network.setCSPacket(cs_packet);
 		network.SendPacket();
+		m_SendTime = 0.f;
 	}
-#else
-	cs_packet.m_Key = key;
-	network.setCSPacket(cs_packet);
-	network.SendPacket();
 #endif
 	network.Recv_UpdatePacket(this, m_PlayerList);
 	// 탈주한 플레이어가 있는지 확인한다.
