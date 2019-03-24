@@ -20,6 +20,8 @@ using namespace std;
 #define WIDTH 800
 #define HEIGHT 800
 
+//#define Non_Blocking
+//#define SERVER_IP "127.0.0.1"
 #define SERVER_IP "192.168.219.106"
 enum SERVER_INFO { SERVER_PORT = 9000, BUFSIZE = 1024 };
 

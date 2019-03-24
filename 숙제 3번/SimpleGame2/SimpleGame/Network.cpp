@@ -145,6 +145,7 @@ void Network::Recv_UpdatePacket(Scene* pScene, map<byte, Player*>& PlayerList)
 			}
 			else
 			{
+				cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
 				err_display("recvn( )");
 				return;
 			}
