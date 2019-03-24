@@ -17,9 +17,11 @@ struct SOCKETINFO
 	int								m_sendBytes;
 };
 
+bool CtrlHandler(DWORD);
 void err_quit(const char*);
 void err_display(const char*);
 bool Initialize();
+void Release();
 void PacketProcess(SOCKET& client_socket, CS_MovePacket& csPacket);
 
 // 콜백함수 정의
@@ -33,6 +35,22 @@ int main()
 {
 	if (!Initialize())
 		return 0;
+}
+
+bool CtrlHandler(DWORD CtrlType)
+{
+	switch (CtrlType)
+	{
+		// Handle the CTRL+C signal. 
+	case CTRL_C_EVENT:
+	case CTRL_CLOSE_EVENT: // CTRL+CLOSE: confirm! that the user wants to exit. 
+	case CTRL_BREAK_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_SHUTDOWN_EVENT:
+	default:
+		Release();
+		return false;
+	}
 }
 
 void err_quit(const char* msg)
@@ -122,6 +140,7 @@ bool Initialize()
 	int addrlen = sizeof(client_addr);
 	ZeroMemory(&client_addr, addrlen);
 	DWORD flags = 0;
+	static byte playerID = 0;
 
 	Position position[10];
 	float termX = 0.f;
@@ -141,6 +160,7 @@ bool Initialize()
 
 	while (true)
 	{
+		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, true);
 		// accept( )
 		client_socket = accept(listen_socket, (SOCKADDR*)&client_addr, &addrlen);
 		if (client_socket == INVALID_SOCKET)
@@ -160,8 +180,9 @@ bool Initialize()
 			ZeroMemory(&((*iter).second), sizeof(SOCKETINFO));
 			(*iter).second.m_socket = client_socket;
 
-			(*iter).second.m_ClientInfo.m_ID = g_clientList.size() - 1;
+			(*iter).second.m_ClientInfo.m_ID = playerID++;
 			(*iter).second.m_ClientInfo.m_Position = position[(*iter).second.m_ClientInfo.m_ID];
+			(*iter).second.m_ClientInfo.m_LeavePlayerID = -1;
 
 			(*iter).second.m_scInitPacket.m_ClientSize = g_clientList.size();
 			(*iter).second.m_dataBuffer.len = sizeof(SC_InitPacket);
@@ -191,7 +212,6 @@ bool Initialize()
 					}
 				}
 			}
-
 		}
 		else
 		{
@@ -207,6 +227,19 @@ bool Initialize()
 	return true;
 }
 
+void Release()
+{
+	for (auto iter = g_clientList.begin(); iter != g_clientList.end(); )
+	{
+		closesocket((*iter).second.m_socket);
+		iter = g_clientList.erase(iter);
+	}
+	g_clientList.clear();
+
+	//closesocket(listen_socket);
+
+	//WSACleanup();
+}
 
 // 패킷처리를 recv_callback에서 담당한다.
 // recv_callback 1개의 함수에서 소켓마다 다르게 처리한다.
@@ -225,6 +258,11 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		auto iter = g_clientList.find(client_socket);
 		if (iter != g_clientList.end())
 		{
+			// 나간 플레이어 ID를 접속해있는 플레이어에게 저장시켜줌
+			for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
+				(*iter2).second.m_ClientInfo.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_ID;
+
+			cout << "클라 게임 종료" << endl;
 			// 해당하는 클라의 소켓을 서버에서도 지움.
 			closesocket((*iter).second.m_socket);
 			iter = g_clientList.erase(iter);
@@ -243,18 +281,19 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 
 		byte playerID = g_clientList.size() - 1;
 		(*iter).second.m_scUpdatePacket.m_ClientSize = g_clientList.size();
+		(*iter).second.m_scUpdatePacket.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_LeavePlayerID;
 		(*iter).second.m_dataBuffer.len = sizeof(SC_UpdatePacket);
+		(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scUpdatePacket);
 		ZeroMemory(&((*iter).second.m_overlapped), sizeof(WSAOVERLAPPED));
 		(*iter).second.m_overlapped.hEvent = (HANDLE)client_socket;
-		(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scUpdatePacket);
 
 		byte count = g_clientList.size() - 1;
 		for (auto iter2 = g_clientList.begin(); iter2 != g_clientList.end(); ++iter2)
 		{
 			(*iter).second.m_scUpdatePacket.m_PlayerID = (*iter2).second.m_ClientInfo.m_ID;
 			(*iter).second.m_scUpdatePacket.m_Position = (*iter2).second.m_ClientInfo.m_Position;
-
 			(*iter).second.m_scUpdatePacket.m_RemainPacket = count--;
+
 			if (WSASend(client_socket, &(*iter).second.m_dataBuffer, 1, &dataBytes, 0, &((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING)
@@ -272,17 +311,17 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 	DWORD flags = 0;
 
 	// 클라이언트에서 closesocket( )을 호출한 경우
-	//if (dataBytes == 0)
-	//{
-	//	auto iter = g_clientList.find(client_socket);
-	//	if (iter != g_clientList.end())
-	//	{
-	//		// 해당하는 클라의 소켓을 서버에서도 지움.
-	//		closesocket((*iter).second.m_socket);
-	//		iter = g_clientList.erase(iter);
-	//	}
-	//	return;
-	//}
+	if (dataBytes == 0)
+	{
+		//auto iter = g_clientList.find(client_socket);
+		//if (iter != g_clientList.end())
+		//{
+		//	// 해당하는 클라의 소켓을 서버에서도 지움.
+		//	closesocket((*iter).second.m_socket);
+		//	iter = g_clientList.erase(iter);
+		//}
+		return;
+	}
 
 	auto iter = g_clientList.find(client_socket);
 	if (iter != g_clientList.end())

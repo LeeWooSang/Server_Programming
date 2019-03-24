@@ -21,6 +21,9 @@ using namespace std;
 #define HEIGHT 800
 
 #define SERVER_IP "127.0.0.1"
+//#define SERVER_IP "192.168.219.106"
+#define Non_Blocking
+
 enum SERVER_INFO { SERVER_PORT = 9000, BUFSIZE = 1024 };
 
 enum KEY
@@ -42,22 +45,21 @@ struct Position
 // 서버에서 클라에게 좌표 값만 보냄
 struct SC_InitPacket
 {
-	byte m_PlayerID = 0;
-	byte m_ClientSize = 0;
-	Position m_Position = { 0 };
-};
-struct SC_MovePacket
-{
-	byte m_PlayerID = 0;
-	byte m_ClientSize = 0;
-	Position m_Position[2] = { 0 };
+	byte			m_PlayerID = 0;
+	byte			m_ClientSize = 0;
+	Position	m_Position = { 0 };
+	byte			m_RemainPacket = 0;	
+	// 나인지 다른 플레이어인지 구분하기 위해
+	bool			m_Check = false;
 };
 
-struct SC_MovePacket2
+struct SC_UpdatePacket
 {
 	byte m_PlayerID = 0;
 	byte m_ClientSize = 0;
 	Position m_Position = { 0 };
+	byte m_RemainPacket = 0;
+	char m_LeavePlayerID = -1;
 };
 
 // 클라에서 서버에게 어떤 키인지만 보냄

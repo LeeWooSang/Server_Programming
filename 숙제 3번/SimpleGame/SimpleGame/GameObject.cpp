@@ -2,7 +2,7 @@
 #include "GameObject.h"
 
 GameObject::GameObject()
-	: m_ID(0), m_X(0), m_Y(0), m_Z(0), m_Size(0), m_BuildLevel(0), m_ElapsedTime(0)
+	: m_X(0), m_Y(0), m_Z(0), m_Size(0), m_BuildLevel(0), m_ElapsedTime(0)
 {
 	m_Position.m_X = 0;
 	m_Position.m_Y = 0;
