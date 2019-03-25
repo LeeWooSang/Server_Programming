@@ -30,6 +30,7 @@ void PacketProcess(SOCKET& client_socket, CS_MovePacket& csPacket);
 void CALLBACK recv_callback(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
 void CALLBACK send_callback(DWORD, DWORD, LPWSAOVERLAPPED, DWORD);
 
+SOCKET g_listen_socket;
 // ★★★★★소켓으로 어떤 클라이언트에서 왔는지 알 수 있게 해야함
 map <SOCKET, SOCKETINFO> g_clientList;
 
@@ -130,8 +131,9 @@ bool Initialize()
 
 	// Socket( )
 	// 대기 소켓 생성
-	SOCKET listen_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
-	if (listen_socket == INVALID_SOCKET)
+	//SOCKET g_listen_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	g_listen_socket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (g_listen_socket == INVALID_SOCKET)
 	{
 		err_quit("socket( )");
 		return false;
@@ -145,21 +147,21 @@ bool Initialize()
 	server_addr.sin_port = htons(SERVER_PORT);
 
 	// namespace std에 있는 bind 함수와 Winsock2에 있는 bind 함수와 겹쳐서 구분
-	retval = ::bind(listen_socket, (SOCKADDR*)&server_addr, sizeof(server_addr));
+	retval = ::bind(g_listen_socket, (SOCKADDR*)&server_addr, sizeof(server_addr));
 	if (retval == SOCKET_ERROR)
 	{
 		err_quit("bind( )");
-		closesocket(listen_socket);
+		closesocket(g_listen_socket);
 		WSACleanup();
 		return false;
 	}
 
 	// listen( )
-	retval = listen(listen_socket, SOMAXCONN);
+	retval = listen(g_listen_socket, SOMAXCONN);
 	if (retval == SOCKET_ERROR)
 	{
 		err_quit("listen( )");
-		closesocket(listen_socket);
+		closesocket(g_listen_socket);
 		WSACleanup();
 		return false;
 	}
@@ -179,7 +181,7 @@ bool Initialize()
 	{
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, true);
 		// accept( )
-		client_socket = accept(listen_socket, (SOCKADDR*)&client_addr, &addrlen);
+		client_socket = accept(g_listen_socket, (SOCKADDR*)&client_addr, &addrlen);
 		if (client_socket == INVALID_SOCKET)
 		{
 			err_display("accept( )");
@@ -246,8 +248,8 @@ bool Initialize()
 		}
 	}
 
-	closesocket(listen_socket);
 
+	closesocket(g_listen_socket);
 	WSACleanup();
 
 	return true;
@@ -262,9 +264,9 @@ void Release()
 	}
 	g_clientList.clear();
 
-	//closesocket(listen_socket);
-
-	//WSACleanup();
+	closesocket(g_listen_socket);
+	WSACleanup();
+	exit(0);
 }
 
 // 패킷처리를 recv_callback에서 담당한다.

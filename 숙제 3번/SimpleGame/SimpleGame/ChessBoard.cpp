@@ -20,7 +20,7 @@ bool ChessBoard::Initialize(Renderer* pRenderer, int type, float x, float y)
 	if (type == EVEN)
 	{
 		int i = 0;
-		m_Color[i++] = 0.f;
+		m_Color[i++] = 0.3f;
 		m_Color[i++] = 0.3f;
 		m_Color[i++] = 0.3f;
 		m_Color[i++] = 1.f;
@@ -29,7 +29,7 @@ bool ChessBoard::Initialize(Renderer* pRenderer, int type, float x, float y)
 	{
 		int i = 0;
 		m_Color[i++] = 1.f;
-		m_Color[i++] = 0.f;
+		m_Color[i++] = 1.f;
 		m_Color[i++] = 1.f;
 		m_Color[i++] = 1.f;
 	}
