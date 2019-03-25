@@ -137,18 +137,22 @@ bool Scene::PlayerCreate(byte PacketType, const SC_InitPacket& SCInitPacket, con
 {
 	// 플레이어 생성
 	Player* pPlayer = new Player;
-	if (!pPlayer->Initialize(m_pRenderer))
-		return false;
 
 	switch (PacketType)
 	{
 	case Network::InitPacket:
+		if (!pPlayer->Initialize(m_pRenderer, (int)SCInitPacket.m_TextureID))
+			return false;
+
 		pPlayer->setID(SCInitPacket.m_PlayerID);
 		pPlayer->setPosition(SCInitPacket.m_Position);
 		pPlayer->setCheck(SCInitPacket.m_Check);
 		break;
 
 	case Network::UpdatePacket:
+		if (!pPlayer->Initialize(m_pRenderer, (int)SCUpdatePacket.m_TextureID))
+			return false;
+
 		pPlayer->setID(SCUpdatePacket.m_PlayerID);
 		pPlayer->setPosition(SCUpdatePacket.m_Position);
 		break;

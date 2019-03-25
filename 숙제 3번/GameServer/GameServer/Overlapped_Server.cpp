@@ -188,6 +188,7 @@ bool Initialize()
 		cout << "\n[ TCP 서버 ] 클라이언트 접속 - IP : " << inet_ntoa(client_addr.sin_addr)
 			<< ", 포트 번호 : " << ntohs(client_addr.sin_port) << endl;
 
+		// 클라 연결되어있는지 확인
 		BOOL option = true;
 		retval = setsockopt(client_socket, SOL_SOCKET, SO_KEEPALIVE, (char*)&option, sizeof(option));
 		if (retval == SOCKET_ERROR)
@@ -208,7 +209,6 @@ bool Initialize()
 			
 			(*iter).second.m_ClientInfo.m_LeavePlayerID = -1;
 
-			(*iter).second.m_scInitPacket.m_ClientSize = g_clientList.size();
 			(*iter).second.m_dataBuffer.len = sizeof(SC_InitPacket);
 			(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scInitPacket);
 			(*iter).second.m_overlapped.hEvent = (HANDLE)(*iter).second.m_socket;
@@ -218,6 +218,8 @@ bool Initialize()
 			{
 				(*iter).second.m_scInitPacket.m_PlayerID = (*iter2).second.m_ClientInfo.m_ID;
 				(*iter).second.m_scInitPacket.m_Position = (*iter2).second.m_ClientInfo.m_Position;
+				(*iter).second.m_scInitPacket.m_TextureID = (*iter2).second.m_ClientInfo.m_TextureID;
+
 				(*iter).second.m_scInitPacket.m_RemainPacket = count--;
 
 				if ((*iter).second.m_socket == (*iter2).second.m_socket)
@@ -290,7 +292,7 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		// 그렇지 않으면, send( )하는 동안 recv( )를 할 수 없어서 지연 됨.
 
 		byte playerID = g_clientList.size() - 1;
-		(*iter).second.m_scUpdatePacket.m_ClientSize = g_clientList.size();
+
 		(*iter).second.m_scUpdatePacket.m_LeavePlayerID = (*iter).second.m_ClientInfo.m_LeavePlayerID;
 		(*iter).second.m_dataBuffer.len = sizeof(SC_UpdatePacket);
 		(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_scUpdatePacket);
@@ -302,13 +304,15 @@ void CALLBACK recv_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		{
 			(*iter).second.m_scUpdatePacket.m_PlayerID = (*iter2).second.m_ClientInfo.m_ID;
 			(*iter).second.m_scUpdatePacket.m_Position = (*iter2).second.m_ClientInfo.m_Position;
+			(*iter).second.m_scUpdatePacket.m_TextureID = (*iter2).second.m_ClientInfo.m_TextureID;
+
 			(*iter).second.m_scUpdatePacket.m_RemainPacket = count--;
 
 			if (WSASend(client_socket, &(*iter).second.m_dataBuffer, 1, &dataBytes, 0, &((*iter).second.m_overlapped), send_callback) == SOCKET_ERROR)
 			{
 				if (WSAGetLastError() != WSA_IO_PENDING)
 				{
-					cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
+					//cout << "Error - Fail WSASend(error_code : " << WSAGetLastError() << ")" << endl;
 
 					// 클라 탈주
 					if (WSAGetLastError() == WSAECONNRESET || WSAGetLastError() == WSAECONNABORTED)
@@ -345,9 +349,6 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		//cout << "TRACE - Send : (" << dataBytes << " bytes)" << endl;
 
 		// WSASend(응답에 대한)의 콜백일 경우
-		//(*iter).second.m_dataBuffer.len = BUFSIZE;
-		//(*iter).second.m_dataBuffer.buf = (*iter).second.m_messageBuffer;
-
 		(*iter).second.m_dataBuffer.len = sizeof(CS_MovePacket);
 		(*iter).second.m_dataBuffer.buf = reinterpret_cast<char*>(&(*iter).second.m_csPacket);
 		ZeroMemory(&((*iter).second.m_overlapped), sizeof(WSAOVERLAPPED));
@@ -357,7 +358,7 @@ void CALLBACK send_callback(DWORD Error, DWORD dataBytes, LPWSAOVERLAPPED overla
 		{
 			if (WSAGetLastError() != WSA_IO_PENDING)
 			{
-				cout << "Error - Fail WSARecv(error_code : " << WSAGetLastError() << ")" << endl;
+				//cout << "Error - Fail WSARecv(error_code : " << WSAGetLastError() << ")" << endl;
 				// 클라 탈주
 				if (WSAGetLastError() == WSAECONNRESET || WSAGetLastError() == WSAECONNABORTED)
 				{

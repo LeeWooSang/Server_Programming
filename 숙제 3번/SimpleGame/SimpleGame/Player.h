@@ -12,6 +12,8 @@ public:
 	int ProcessInput(int, int, int);
 
 	virtual bool Initialize(Renderer*);
+	virtual bool Initialize(Renderer*, int);
+
 	virtual void Update(float, float, float);
 	virtual void Render(Renderer*);
 

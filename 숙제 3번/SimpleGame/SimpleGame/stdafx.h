@@ -46,8 +46,10 @@ struct Position
 struct SC_InitPacket
 {
 	byte			m_PlayerID = 0;
-	byte			m_ClientSize = 0;
 	Position	m_Position = { 0 };
+	// 플레이어 텍스쳐 아이디
+	byte			m_TextureID;
+
 	byte			m_RemainPacket = 0;	
 	// 나인지 다른 플레이어인지 구분하기 위해
 	bool			m_Check = false;
@@ -56,8 +58,9 @@ struct SC_InitPacket
 struct SC_UpdatePacket
 {
 	byte m_PlayerID = 0;
-	byte m_ClientSize = 0;
 	Position m_Position = { 0 };
+	// 플레이어 텍스쳐 아이디
+	byte			m_TextureID;
 	byte m_RemainPacket = 0;
 	char m_LeavePlayerID = -1;
 };

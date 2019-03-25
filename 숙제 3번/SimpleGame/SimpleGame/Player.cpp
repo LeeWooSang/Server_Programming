@@ -72,6 +72,39 @@ bool Player::Initialize(Renderer* pRenderer)
 	return true;
 }
 
+bool Player::Initialize(Renderer* pRenderer, int TextureID)
+{
+	m_Position.m_X = 0.f;
+	m_Position.m_Y = 0.f;
+	m_Size = 100.f;
+
+	m_Color[0] = 1.f;
+	m_Color[1] = 1.f;
+	m_Color[2] = 1.f;
+	m_Color[3] = 1.f;
+
+	m_BuildLevel = 0.1f;
+
+	m_HpBar_width = m_Size;
+	m_HpBar_height = m_Size / 10.f;
+
+	m_Speed = 100.f;
+
+	string filename = "./Textures/PNGs/";
+	switch (TextureID)
+	{
+	case Pawn:	filename += "Chess_Pawn.png";		break;
+	case Rookie:	filename += "Chess_Rookie.png";		break;
+	case Knight:	filename += "Chess_Knight.png";		break;
+	case Bishop: filename += "Chess_Bishop.png";		break;
+	case Queen: filename += "Chess_Queen.png";		break;
+	case King:		filename += "Chess_King.png";			break;
+	}
+
+m_TextureID = pRenderer->CreatePngTexture(const_cast<char*>(filename.c_str()));
+
+	return true;
+}
 void Player::Update(float elapsedTime, float x, float y)
 {
 	//m_X = x;
