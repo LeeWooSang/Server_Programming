@@ -43,11 +43,14 @@ void CacheMiss()
 			//index += CACHE_LINE_SIZE * 11;
 		}
 		auto dur = chrono::high_resolution_clock::now() - start;
-	}
+	}
+
 }
 // 절대값 구하는 매크로
 #define abs(x) (((x)>0)?(x):-(x))
-#define T_SIZE 10000000// 절대값 구하는 함수static long ABS(long x) 
+#define T_SIZE 10000000
+// 절대값 구하는 함수
+static long ABS(long x) 
 {
 	long y;
 	y = x >> 31; /* Not portable */
@@ -55,7 +58,8 @@ void CacheMiss()
 }
 
 void BranchMiss()
-{	//int sum;
+{
+	//int sum;
 	//for (int i = 0; i < T_SIZE; ++i) rand_arr[i] = rand() - 16384;
 	//sum = 0;
 	//auto start_t = high_resolution_clock::now();
@@ -68,5 +72,6 @@ void BranchMiss()
 	//for (int i = 0; i < T_SIZE; ++i) sum += abs2(rand_arr[i]);
 	//du = high_resolution_clock::now() - start_t;
 	//cout << "[abs2] Time " << duration_cast<milliseconds>(du).count() << " ms\n";
-	//cout << "Result : " << sum << endl;
+	//cout << "Result : " << sum << endl;
+
 }

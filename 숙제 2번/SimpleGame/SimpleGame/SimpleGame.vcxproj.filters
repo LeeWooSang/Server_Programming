@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Code">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Code\Renderer">
+      <UniqueIdentifier>{89267606-4707-45e5-b6a8-89989c7ee094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\LoadPng">
+      <UniqueIdentifier>{1cf12876-1d11-4bf3-9055-2661f7f5b2ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\GameObject">
+      <UniqueIdentifier>{b3575577-d22b-4e48-881c-e920af9c3955}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\Shader">
+      <UniqueIdentifier>{aa86e47f-445f-4440-9a76-173363b46c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\GameObject\Player">
+      <UniqueIdentifier>{483801d7-3ae6-4d14-af8e-3dc5bc3e28a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\Default">
+      <UniqueIdentifier>{4b39e6c8-f693-4043-b421-cb1e542019ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\Scene">
+      <UniqueIdentifier>{8eeb9cac-7011-464c-a263-aeb4c85f472d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\GameObject\ChessBoard">
+      <UniqueIdentifier>{8165940f-e0c3-4264-8afb-9c88e9789fcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Code\Network">
+      <UniqueIdentifier>{6fa7e679-0147-4e6b-9165-5a4d004cdcbb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Renderer.h">
+      <Filter>Code\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadPng.h">
+      <Filter>Code\LoadPng</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Code\Default</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Code\Default</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Code\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Code\GameObject\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Code\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessBoard.h">
+      <Filter>Code\GameObject\ChessBoard</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Code\Network</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SimpleGame.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Code\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadPng.cpp">
+      <Filter>Code\LoadPng</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Code\Default</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Code\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Code\GameObject\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="ChessBoard.cpp">
+      <Filter>Code\GameObject\ChessBoard</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Code\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Code\Network</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\SolidRect.fs">
+      <Filter>Code\Shader</Filter>
+    </None>
+    <None Include="Shaders\SolidRect.vs">
+      <Filter>Code\Shader</Filter>
+    </None>
+    <None Include="Shaders\SolidRectWithTexture.fs">
+      <Filter>Code\Shader</Filter>
+    </None>
+    <None Include="Shaders\SolidRectWithTexture.vs">
+      <Filter>Code\Shader</Filter>
+    </None>
+    <None Include="Shaders\SolidRectWithTextureSeq.fs">
+      <Filter>Code\Shader</Filter>
+    </None>
+    <None Include="Shaders\SolidRectWithTextureSeq.vs">
+      <Filter>Code\Shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>
